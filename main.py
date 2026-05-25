@@ -25,16 +25,25 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             texto_ingles = await websocket.receive_text()
-            # Traduz
+            
+            # Faz a tradução
             texto_pt = GoogleTranslator(source='en', target='pt').translate(texto_ingles)
-            # Gera Voz
+            
+            # Gera o arquivo de áudio
             tts = gTTS(text=texto_pt, lang='pt', slow=False)
             arquivo_audio = "resposta.mp3"
             tts.save(arquivo_audio)
-            # Envia
+            
+            # Transforma em Base64
             with open(arquivo_audio, "rb") as f:
                 audio_base64 = base64.b64encode(f.read()).decode('utf-8')
-                await websocket.send_text(audio_base64)
+            
+            # Envia TEXTO e ÁUDIO para o celular
+            await websocket.send_json({
+                "texto": texto_pt,
+                "audio": audio_base64
+            })
+            
             os.remove(arquivo_audio)
     except WebSocketDisconnect:
         pass
