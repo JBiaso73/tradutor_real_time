@@ -75,7 +75,10 @@
         }
 
         btnIniciar.onclick = () => {
-            // Se adapta automaticamente para conexões seguras na nuvem (wss://)
+            // Truque para destravar o áudio no celular (toca um áudio vazio rápido)
+            const unlockAudio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+            unlockAudio.play().catch(() => {});
+
             const protocoloWS = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
             ws = new WebSocket(protocoloWS + window.location.host + "/ws");
             
@@ -92,9 +95,15 @@
                 pausadoParaFalar = true;
                 recognition.stop(); 
                 statusDiv.innerText = "🔊 Falando tradução...";
-                const snd = new Audio("data:audio/mp3;base64," + event.data);
+                
+                // Agora recebe e separa o texto do áudio
+                const dados = JSON.parse(event.data);
+                
+                const snd = new Audio("data:audio/mp3;base64," + dados.audio);
                 snd.play();
-                logTextos.innerHTML += `<div class="pt">🇧🇷 Traduzido e reproduzido.</div>`;
+                
+                // Escreve a tradução real na tela
+                logTextos.innerHTML += `<div class="pt">🇧🇷 ${dados.texto}</div>`;
                 logTextos.scrollTop = logTextos.scrollHeight;
                 
                 snd.onended = () => {
