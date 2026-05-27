@@ -91,16 +91,25 @@
                 btnParar.disabled = false;
             };
 
-            ws.onmessage = (event) => {
-                pausadoParaFalar = true;
-                recognition.stop(); 
-                statusDiv.innerText = "🔊 Falando tradução...";
-                
-                // Agora recebe e separa o texto do áudio
-                const dados = JSON.parse(event.data);
-                
-                const snd = new Audio("data:audio/mp3;base64," + dados.audio);
-                snd.play();
+         // Substitua a função ws.onmessage no seu index.html por esta:
+ws.onmessage = (event) => {
+    // 1. Recebe os dados
+    const dados = JSON.parse(event.data);
+    
+    // 2. Toca o áudio
+    const snd = new Audio("data:audio/mp3;base64," + dados.audio);
+    
+    // 3. Garante que, ao terminar o áudio, a escuta reinicie SEMPRE
+    snd.onended = () => {
+        statusDiv.innerText = "🎙️ Escutando a reunião...";
+        pausadoParaFalar = false;
+        recognition.start(); // Força a reativação do microfone
+    };
+    
+    snd.play();
+    logTextos.innerHTML += `<div class="pt">🇧🇷 ${dados.texto}</div>`;
+    logTextos.scrollTop = logTextos.scrollHeight;
+};
                 
                 // Escreve a tradução real na tela
                 logTextos.innerHTML += `<div class="pt">🇧🇷 ${dados.texto}</div>`;
